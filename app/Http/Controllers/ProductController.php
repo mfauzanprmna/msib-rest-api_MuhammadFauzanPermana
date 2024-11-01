@@ -11,21 +11,34 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::all();
+        $productName = $request->query('product_name');
+        $category = $request->query('category');
+
+        $query = Product::query();
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if (!empty($productName)) {
+            $query->where('product_name', 'LIKE', '%' . $productName . '%');
+        }
+
+        $products = $query->get();
 
         if ($products->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'No products found'
+                'message' => 'No products found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Products retrieved successfully',
-            'data' => $products
+            'data' => $products,
         ], 200);
     }
 
@@ -98,9 +111,21 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function search($name)
     {
-        //
+        $products = Product::where('product_name', 'like', '%' . $name . '%')->get();
+        if ($products->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No products found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Products retrieved successfully',
+            'data' => $products 
+        ]);
     }
 
     /**
